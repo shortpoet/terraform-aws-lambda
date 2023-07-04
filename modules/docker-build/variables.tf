@@ -82,3 +82,45 @@ variable "platform" {
   type        = string
   default     = null
 }
+
+variable "docker_use_ecr" {
+  description = "Whether to use ECR as a remote registry for Docker image."
+  type        = bool
+  default     = false
+}
+
+variable "docker_use_gitlab" {
+  description = "Whether to use GitLab as a remote registry for Docker image."
+  type        = bool
+  default     = false
+}
+
+variable "gitlab_address" {
+  description = "Address of GitLab registry for cross-account container image pulling (optional). Option `docker_use_gitlab` must be `true`"
+  type        = string
+  default     = null
+}
+
+variable "gitlab_namespace" {
+  description = "Name of GitLab namespace to use"
+  type        = string
+  default     = null
+}
+
+variable "gitlab_project" {
+  description = "Name of GitLab project to use"
+  type        = string
+  default     = null
+}
+
+variable "gitlab_image_name" {
+  type        = string
+  description = "Name of the image to be built"
+  default     = null
+}
+
+variable "image_name" {
+  type        = string
+  description = "Name of the image to be built"
+  default     = null
+}

@@ -3,20 +3,41 @@ data "aws_region" "current" {}
 data "aws_caller_identity" "this" {}
 
 locals {
-  ecr_address    = coalesce(var.ecr_address, format("%v.dkr.ecr.%v.amazonaws.com", data.aws_caller_identity.this.account_id, data.aws_region.current.name))
-  ecr_repo       = var.create_ecr_repo ? aws_ecr_repository.this[0].id : var.ecr_repo
-  image_tag      = coalesce(var.image_tag, formatdate("YYYYMMDDhhmmss", timestamp()))
+  ecr_address = coalesce(var.ecr_address, format("%v.dkr.ecr.%v.amazonaws.com", data.aws_caller_identity.this.account_id, data.aws_region.current.name))
+  ecr_repo    = var.create_ecr_repo ? aws_ecr_repository.this[0].id : var.ecr_repo
+
+  image_tag = coalesce(var.image_tag, formatdate("YYYYMMDDhhmmss", timestamp()))
+
   ecr_image_name = format("%v/%v:%v", local.ecr_address, local.ecr_repo, local.image_tag)
+
+  gitlab_address    = coalesce(var.gitlab_address, format("registry.gitlab.com/%v/%v", var.gitlab_namespace, var.gitlab_project))
+  gitlab_image_name = local.gitlab_address
+
+  docker_use_ecr    = var.docker_use_ecr ? true : false
+  docker_use_gitlab = var.docker_use_gitlab ? true : false
+
+  # image_name = "registry.gitlab.com/shortpoet/filez"
+  image_name = local.docker_use_ecr ? local.ecr_image_name : local.docker_use_gitlab ? local.gitlab_image_name : var.image_name
+}
+
+resource "null_resource" "docker_file_trigger" {
+  triggers = {
+    docker_file = md5(file("${var.source_path}/Dockerfile"))
+    bootstrap   = md5(file("${var.source_path}/bootstrap.sh"))
+  }
 }
 
 resource "docker_image" "this" {
-  name = local.ecr_image_name
+  name = local.image_name
 
   build {
     context    = var.source_path
     dockerfile = var.docker_file_path
     build_args = var.build_args
     platform   = var.platform
+  }
+  lifecycle {
+    replace_triggered_by = [null_resource.docker_file_trigger]
   }
 }
 
@@ -41,7 +62,7 @@ resource "aws_ecr_repository" "this" {
 }
 
 resource "aws_ecr_lifecycle_policy" "this" {
-  count = var.ecr_repo_lifecycle_policy != null ? 1 : 0
+  count = local.docker_use_ecr && var.ecr_repo_lifecycle_policy != null ? 1 : 0
 
   policy     = var.ecr_repo_lifecycle_policy
   repository = local.ecr_repo
