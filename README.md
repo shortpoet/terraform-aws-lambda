@@ -33,11 +33,11 @@ This Terraform module is the part of [serverless.tf framework](https://github.co
 - add gitlab
 
 ```bash
-git pull origin master
+git pull upstream master
 git checkout main
 git commit -am "before merge master"
 git merge master
-git push fork main
+git push origin main
 ```
 
 ### Lambda Function (store package locally)
