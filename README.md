@@ -28,6 +28,18 @@ This Terraform module is the part of [serverless.tf framework](https://github.co
 
 ## Usage
 
+### Shortpoet Fork
+
+- add gitlab
+
+```bash
+git pull origin master
+git checkout main
+git commit -am "before merge master"
+git merge master
+git push fork main
+```
+
 ### Lambda Function (store package locally)
 
 ```hcl
