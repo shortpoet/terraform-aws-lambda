@@ -33,7 +33,7 @@ This Terraform module is the part of [serverless.tf framework](https://github.co
 - add gitlab
 
 ```bash
-git pull upstream master
+git fetch upstream master
 git checkout main
 git commit -am "before merge master"
 git merge master
